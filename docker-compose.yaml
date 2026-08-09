@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: no-code-page-builder-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: no_code_page_builder
+    ports:
+      - "5432:5432"
+    volumes:
+      - no_code_page_builder_db:/var/lib/postgresql/data
+
+volumes:
+  no_code_page_builder_db:
