@@ -1,4 +1,5 @@
 import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
+import type { PageBlock } from "../../types/builder";
 
 const FONT_WEIGHT_OPTIONS = [
   { label: "100 - Thin", value: "100" },
@@ -12,12 +13,16 @@ const FONT_WEIGHT_OPTIONS = [
   { label: "900 - Black", value: "900" },
 ];
 
-const PropertiesPanel = () => {
+type PropertiesPanelProps = {
+  selectedBlock: PageBlock | null;
+};
+
+const PropertiesPanel = ({ selectedBlock }: PropertiesPanelProps) => {
   return (
     <aside className="">
       <div className="px-4 py-4 border-b border-gray-300">
         <h2 className="text-blue-500 font-medium">Properties</h2>
-        <p>Heading</p>
+        {selectedBlock && <p className="capitalize">{selectedBlock.type}</p>}
       </div>
       <div className="space-y-7 px-6 py-6">
         {/* Font-size */}
