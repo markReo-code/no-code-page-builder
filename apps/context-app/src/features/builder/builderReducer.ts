@@ -31,7 +31,7 @@ type DeleteBlockAction = {
   };
 };
 
-type BuilderAction =
+export type BuilderAction =
   | SelectBlockAction
   | UpdateBlockStyleAction
   | AddBlockAction
