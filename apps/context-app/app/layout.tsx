@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@repo/ui/components/builder/Header";
+import { BuilderProvider } from "../src/features/builder/context/BuilderContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,8 +28,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen grid grid-rows-[auto_1fr]`}
       >
-        <Header />
-        <main className="min-h-0">{children}</main>
+        <BuilderProvider>
+          <Header />
+          <main className="min-h-0">{children}</main>
+        </BuilderProvider>
       </body>
     </html>
   );
