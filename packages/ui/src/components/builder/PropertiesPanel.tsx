@@ -1,109 +1,121 @@
 import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
-import type { PageBlock } from "../../types/builder";
+import type { PageBlock, TextAlign } from "../../types/builder";
+import { FontSizeControl } from "./FontSizeControl";
 
 const FONT_WEIGHT_OPTIONS = [
-  { label: "100 - Thin", value: "100" },
-  { label: "200 - Extra Light", value: "200" },
-  { label: "300 - Light", value: "300" },
-  { label: "400 - Regular", value: "400" },
-  { label: "500 - Medium", value: "500" },
-  { label: "600 - Semi Bold", value: "600" },
-  { label: "700 - Bold", value: "700" },
-  { label: "800 - Extra Bold", value: "800" },
-  { label: "900 - Black", value: "900" },
+  { label: "Thin", value: 100 },
+  { label: "Extra Light", value: 200 },
+  { label: "Light", value: 300 },
+  { label: "Regular", value: 400 },
+  { label: "Medium", value: 500 },
+  { label: "Semi Bold", value: 600 },
+  { label: "Bold", value: 700 },
+  { label: "Extra Bold", value: 800 },
+  { label: "Black", value: 900 },
 ];
+
+const TEXT_ALIGN_OPTIONS = [
+  { value: "left", label: "Align left", icon: AlignLeft },
+  { value: "center", label: "Align center", icon: AlignCenter },
+  { value: "right", label: "Align right", icon: AlignRight },
+] satisfies {
+  value: TextAlign;
+  label: string;
+  icon: typeof AlignLeft;
+}[];
 
 type PropertiesPanelProps = {
   selectedBlock: PageBlock | null;
+  onChangeStyles: (styles: Partial<PageBlock["styles"]>) => void;
 };
 
-const PropertiesPanel = ({ selectedBlock }: PropertiesPanelProps) => {
+const PropertiesPanel = ({
+  selectedBlock,
+  onChangeStyles,
+}: PropertiesPanelProps) => {
   return (
     <aside className="">
       <div className="px-4 py-4 border-b border-gray-300">
         <h2 className="text-blue-500 font-medium">Properties</h2>
         {selectedBlock && <p className="capitalize">{selectedBlock.type}</p>}
       </div>
-      <div className="space-y-7 px-6 py-6">
-        {/* Font-size */}
-        <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-          <label
-            htmlFor="font-size"
-            className="text-sm font-bold text-slate-600"
-          >
-            Size
-          </label>
-          <div className="grid grid-cols-[minmax(0,1fr)_42px]">
-            <input
+      {selectedBlock && (
+        <div className="space-y-7 px-6 py-6">
+          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
+            <label
+              htmlFor="font-size"
+              className="text-sm font-bold text-slate-600"
+            >
+              Size
+            </label>
+            <FontSizeControl
               id="font-size"
-              type="number"
-              className="h-11 w-full border border-r-0 border-slate-300 bg-white text-center
-  text-[15px] font-semibold text-slate-900 outline-none"
-              defaultValue={36}
+              value={selectedBlock?.styles.fontSize}
+              disabled={!selectedBlock}
+              onChange={(fontSize) => {
+                onChangeStyles({ fontSize });
+              }}
             />
-            <span
-              className="grid h-11 place-items-center border border-slate-300 bg-blue-50
-  text-sm font-bold text-slate-600"
-            >
-              px
-            </span>
           </div>
+
+          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
+            <label
+              htmlFor="font-weight"
+              className="text-sm font-bold text-slate-600"
+            >
+              Weight
+            </label>
+            <div className="w-full max-w-[224px] justify-self-end">
+              <select
+                id="font-weight"
+                className="h-11 w-full border border-slate-300 bg-white px-3 text-[15px] font-semibold text-slate-900 outline-none"
+                value={selectedBlock.styles.fontWeight ?? 400}
+                onChange={(e) => {
+                  const fontWeight = Number(e.currentTarget.value);
+
+                  onChangeStyles({ fontWeight });
+                }}
+              >
+                {FONT_WEIGHT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-bold text-slate-600">
+              Alignment
+            </legend>
+            <div className="grid w-full h-10 grid-cols-3 overflow-hidden rounded-[2px] border border-slate-300">
+              {TEXT_ALIGN_OPTIONS.map((option, index) => {
+                const Icon = option.icon;
+                const isActive =
+                  selectedBlock.styles.textAlign === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-label={option.label}
+                    className={`grid place-items-center
+                      ${index !== TEXT_ALIGN_OPTIONS.length - 1 ? "border-r border-slate-300" : ""}
+                      ${isActive ? "bg-blue-50 text-slate-900" : "bg-white text-slate-600"}
+                      `}
+                    onClick={() => {
+                      onChangeStyles({ textAlign: option.value });
+                    }}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
-
-        {/* Font-weight */}
-        <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-          <label
-            htmlFor="font-weight"
-            className="text-sm font-bold text-slate-600"
-          >
-            Weight
-          </label>
-          <div className="w-full max-w-[224px] justify-self-end">
-            <select
-              id="font-weight"
-              className="h-11 w-full border border-slate-300 bg-white px-3 text-[15px] font-semibold text-slate-900 outline-none"
-              defaultValue="700"
-            >
-              {FONT_WEIGHT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Alignment */}
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-bold text-slate-600">
-            Alignment
-          </legend>
-          <div className="grid w-full h-10 grid-cols-3 overflow-hidden rounded-[2px] border border-slate-300">
-            <button
-              type="button"
-              aria-label="Align left"
-              className="grid place-items-center border-r border-slate-300 bg-blue-50 text-slate-900"
-            >
-              <AlignLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="Align center"
-              className="grid place-items-center border-r border-slate-300 bg-white text-slate-600"
-            >
-              <AlignCenter className="h-4 w-4" />
-            </button>
-
-            <button
-              type="button"
-              aria-label="Align right"
-              className="grid place-items-center bg-white text-slate-600"
-            >
-              <AlignRight className="h-4 w-4" />
-            </button>
-          </div>
-        </fieldset>
-      </div>
+      )}
     </aside>
   );
 };

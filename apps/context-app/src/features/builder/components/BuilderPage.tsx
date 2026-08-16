@@ -25,7 +25,20 @@ const BuilderPage = () => {
           });
         }}
       />
-      <PropertiesPanel selectedBlock={selectedBlock} />
+      <PropertiesPanel
+        selectedBlock={selectedBlock}
+        onChangeStyles={(styles) => {
+          if (!selectedBlock) return;
+
+          dispatch({
+            type: "UPDATE_BLOCK_STYLES",
+            payload: {
+              blockId: selectedBlock.id,
+              styles,
+            },
+          });
+        }}
+      />
     </div>
   );
 };
