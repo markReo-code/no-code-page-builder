@@ -1,4 +1,5 @@
 import type { PageBlock } from "../../types/builder";
+import type { CSSProperties } from "react";
 
 type PageCanvasProps = {
   blocks: PageBlock[];
@@ -13,6 +14,12 @@ const PageCanvas = ({ blocks, selectedId, onSelectBlock }: PageCanvasProps) => {
         {blocks.map((block) => {
           const isSelected = block.id === selectedId;
 
+          const blockStyle: CSSProperties = {
+            fontSize: block.styles.fontSize,
+            fontWeight: block.styles.fontWeight,
+            textAlign: block.styles.textAlign,
+          };
+
           return (
             <div
               key={block.id}
@@ -22,6 +29,7 @@ const PageCanvas = ({ blocks, selectedId, onSelectBlock }: PageCanvasProps) => {
                   ? "outline outline-2 outline-blue-500"
                   : "outline outline-1 outline-transparent"
               }
+              style={blockStyle}
             >
               {block.type === "heading" && <h1>{block.content}</h1>}
               {block.type === "paragraph" && <p>{block.content}</p>}
