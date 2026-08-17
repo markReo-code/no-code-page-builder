@@ -35,6 +35,15 @@ const BuilderPage = () => {
             payload: { blockId },
           });
         }}
+        onChangeContent={(blockId, content) => {
+          dispatch({
+            type: "UPDATE_BLOCK_CONTENT",
+            payload: {
+              blockId,
+              content,
+            },
+          });
+        }}
       />
       <PropertiesPanel
         selectedBlock={selectedBlock}
