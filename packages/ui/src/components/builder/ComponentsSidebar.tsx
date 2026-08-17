@@ -5,11 +5,14 @@ import {
   Pilcrow,
   Type,
 } from "lucide-react";
+import type { BlockType } from "../../types/builder";
 
-type ComponentType = "heading" | "paragraph" | "button" | "image";
+type ComponentsSidebarProps = {
+  onAddBlock: (type: BlockType) => void;
+};
 
 type ComponentItem = {
-  type: ComponentType;
+  type: BlockType;
   label: string;
   icon: LucideIcon;
 };
@@ -21,7 +24,7 @@ const componentItems: ComponentItem[] = [
   { type: "image", label: "Image", icon: ImageIcon },
 ];
 
-const ComponentsSidebar = () => {
+const ComponentsSidebar = ({ onAddBlock }: ComponentsSidebarProps) => {
   return (
     <aside className="">
       <div className="px-4 py-4 border-b border-gray-300">
@@ -37,6 +40,7 @@ const ComponentsSidebar = () => {
               <button
                 type="button"
                 className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-gray-100"
+                onClick={() => onAddBlock(item.type)}
               >
                 <Icon
                   className="flex size-5 items-center justify-center rounded bg-gray-100 text-gray-600"

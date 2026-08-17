@@ -5,6 +5,8 @@ import PageCanvas from "@repo/ui/components/builder/PageCanvas";
 import PropertiesPanel from "@repo/ui/components/builder/PropertiesPanel";
 import { useBuilderContext } from "../context/BuilderContext";
 
+import { createBlock } from "@repo/ui/lib/builder/createBlock";
+
 const BuilderPage = () => {
   const { state, dispatch } = useBuilderContext();
 
@@ -13,7 +15,16 @@ const BuilderPage = () => {
 
   return (
     <div className="h-full grid grid-cols-[220px_minmax(0,1fr)_280px] divide-x divide-gray-300">
-      <ComponentsSidebar />
+      <ComponentsSidebar
+        onAddBlock={(type) => {
+          const block = createBlock(type);
+
+          dispatch({
+            type: "ADD_BLOCK",
+            payload: { block },
+          });
+        }}
+      />
       <PageCanvas
         blocks={state.blocks}
         selectedId={state.selectedBlockId}
