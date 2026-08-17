@@ -7,6 +7,14 @@ type SelectBlockAction = {
   };
 };
 
+type UpdateBlockContentAction = {
+  type: "UPDATE_BLOCK_CONTENT";
+  payload: {
+    blockId: string;
+    content: string;
+  };
+};
+
 type UpdateBlockStyleAction = {
   type: "UPDATE_BLOCK_STYLES";
   payload: {
@@ -15,7 +23,6 @@ type UpdateBlockStyleAction = {
   };
 };
 
-// 追記１
 type AddBlockAction = {
   type: "ADD_BLOCK";
   payload: {
@@ -23,7 +30,6 @@ type AddBlockAction = {
   };
 };
 
-// 追記2
 type DeleteBlockAction = {
   type: "DELETE_BLOCK";
   payload: {
@@ -33,6 +39,7 @@ type DeleteBlockAction = {
 
 export type BuilderAction =
   | SelectBlockAction
+  | UpdateBlockContentAction
   | UpdateBlockStyleAction
   | AddBlockAction
   | DeleteBlockAction;
@@ -47,7 +54,21 @@ export const builderReducer = (
         ...state,
         selectedBlockId: action.payload.blockId,
       };
-    // UPDATE_BLOCK_STYLES
+    // UPDATE_BLOCK_CONTENT content更新
+    case "UPDATE_BLOCK_CONTENT":
+      return {
+        ...state,
+        blocks: state.blocks.map((block) => {
+          return block.id === action.payload.blockId
+            ? {
+                ...block,
+                content: action.payload.content,
+              }
+            : block;
+        }),
+      };
+
+    // UPDATE_BLOCK_STYLES styles更新
     case "UPDATE_BLOCK_STYLES":
       return {
         ...state,
