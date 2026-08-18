@@ -6,6 +6,7 @@ type PageCanvasProps = {
   selectedId: string | null;
   onSelectBlock: (blockId: string) => void;
   onChangeContent: (blockId: string, content: string) => void;
+  onDeleteBlock: (blockId: string) => void;
 };
 
 const PageCanvas = ({
@@ -13,7 +14,20 @@ const PageCanvas = ({
   selectedId,
   onSelectBlock,
   onChangeContent,
+  onDeleteBlock,
 }: PageCanvasProps) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLElement>,
+    blockId: string,
+  ) => {
+    const content = e.currentTarget.textContent ?? "";
+
+    if (e.key === "Backspace" && content.trim() === "") {
+      e.preventDefault();
+      onDeleteBlock(blockId);
+    }
+  };
+
   return (
     <section className="flex justify-center items-start min-w-0 min-h-full p-[32px_24px] bg-[#f5f7fb]">
       <div className="w-[min(100%,720px)] min-h-[800px] p-10 bg-white border border-[#e5e7eb] rounded">
@@ -47,6 +61,7 @@ const PageCanvas = ({
                       e.currentTarget.textContent ?? "",
                     );
                   }}
+                  onKeyDown={(e) => handleKeyDown(e, block.id)}
                 >
                   {block.content}
                 </h1>
@@ -62,6 +77,7 @@ const PageCanvas = ({
                       e.currentTarget.textContent ?? "",
                     );
                   }}
+                  onKeyDown={(e) => handleKeyDown(e, block.id)}
                 >
                   {block.content}
                 </p>
@@ -77,6 +93,7 @@ const PageCanvas = ({
                       e.currentTarget.textContent ?? "",
                     );
                   }}
+                  onKeyDown={(e) => handleKeyDown(e, block.id)}
                 >
                   {block.content}
                 </button>

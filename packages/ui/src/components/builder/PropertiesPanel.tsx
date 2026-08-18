@@ -27,11 +27,13 @@ const TEXT_ALIGN_OPTIONS = [
 type PropertiesPanelProps = {
   selectedBlock: PageBlock | null;
   onChangeStyles: (styles: Partial<PageBlock["styles"]>) => void;
+  onDeleteBlock: (blockId: string) => void;
 };
 
 const PropertiesPanel = ({
   selectedBlock,
   onChangeStyles,
+  onDeleteBlock,
 }: PropertiesPanelProps) => {
   return (
     <aside className="">
@@ -114,6 +116,18 @@ const PropertiesPanel = ({
               })}
             </div>
           </fieldset>
+
+          <div>
+            <button
+              type="button"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 px-4 py-2 has-[>svg]:px-3 h-9 w-20 bg-black text-white hover:bg-slate-800"
+              onClick={() => {
+                onDeleteBlock(selectedBlock.id);
+              }}
+            >
+              削除する
+            </button>
+          </div>
         </div>
       )}
     </aside>

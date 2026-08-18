@@ -44,6 +44,12 @@ const BuilderPage = () => {
             },
           });
         }}
+        onDeleteBlock={(blockId) => {
+          dispatch({
+            type: "DELETE_BLOCK",
+            payload: { blockId },
+          });
+        }}
       />
       <PropertiesPanel
         selectedBlock={selectedBlock}
@@ -55,6 +61,14 @@ const BuilderPage = () => {
             payload: {
               blockId: selectedBlock.id,
               styles,
+            },
+          });
+        }}
+        onDeleteBlock={(blockId) => {
+          dispatch({
+            type: "DELETE_BLOCK",
+            payload: {
+              blockId,
             },
           });
         }}
