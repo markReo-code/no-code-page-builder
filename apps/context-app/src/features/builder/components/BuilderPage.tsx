@@ -29,7 +29,6 @@ const BuilderPage = () => {
         blocks={state.blocks}
         selectedId={state.selectedBlockId}
         onSelectBlock={(blockId) => {
-          console.log("select block", blockId);
           dispatch({
             type: "SELECT_BLOCK",
             payload: { blockId },
