@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 type PageCanvasProps = {
   blocks: PageBlock[];
   selectedId: string | null;
-  onSelectBlock: (blockId: string) => void;
+  onSelectBlock: (blockId: string | null) => void;
   onChangeContent: (blockId: string, content: string) => void;
   onDeleteBlock: (blockId: string) => void;
 };
@@ -28,8 +28,15 @@ const PageCanvas = ({
     }
   };
 
+  const handleClearSelection = () => {
+    onSelectBlock(null);
+  };
+
   return (
-    <section className="flex justify-center items-start min-w-0 min-h-full p-[32px_24px] bg-[#f5f7fb]">
+    <section
+      className="flex justify-center items-start min-w-0 min-h-full p-[32px_24px] bg-[#f5f7fb]"
+      onClick={handleClearSelection}
+    >
       <div className="w-[min(100%,720px)] min-h-[800px] p-10 bg-white border border-[#e5e7eb] rounded">
         {blocks.map((block) => {
           const isSelected = block.id === selectedId;
@@ -43,7 +50,10 @@ const PageCanvas = ({
           return (
             <div
               key={block.id}
-              onClick={() => onSelectBlock(block.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectBlock(block.id);
+              }}
               className={
                 isSelected
                   ? "outline outline-2 outline-blue-500"
