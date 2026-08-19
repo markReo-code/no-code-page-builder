@@ -27,6 +27,10 @@ type AddBlockAction = {
   type: "ADD_BLOCK";
   payload: {
     block: PageBlock;
+    insert?: {
+      targetBlockId: string;
+      position: "before" | "after";
+    };
   };
 };
 
@@ -84,12 +88,46 @@ export const builderReducer = (
             : block;
         }),
       };
+
     // ADD_BLOCK
-    case "ADD_BLOCK":
+    case "ADD_BLOCK": {
+      const { block, insert } = action.payload;
+
+      if (!insert) {
+        // 末尾追加
+        return {
+          ...state,
+          blocks: [...state.blocks, block],
+        };
+      }
+
+      const targetIndex = state.blocks.findIndex((currentBlock) => {
+        return currentBlock.id === insert.targetBlockId;
+      });
+
+      if (targetIndex === -1) {
+        // 末尾追加
+        return {
+          ...state,
+          blocks: [...state.blocks, block],
+        };
+      }
+
+      const insertIndex =
+        insert.position === "before" ? targetIndex : targetIndex + 1;
+
+      // insertIndex の位置に block を差し込む
+      const newBlocks = [
+        ...state.blocks.slice(0, insertIndex),
+        block,
+        ...state.blocks.slice(insertIndex),
+      ];
+
       return {
         ...state,
-        blocks: [...state.blocks, action.payload.block],
+        blocks: newBlocks,
       };
+    }
 
     // DELETE_BLOCK
     case "DELETE_BLOCK":
