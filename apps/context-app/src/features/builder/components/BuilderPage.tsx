@@ -19,9 +19,16 @@ const BuilderPage = () => {
         onAddBlock={(type) => {
           const block = createBlock(type);
 
+          const insert = state.selectedBlockId
+            ? {
+                targetBlockId: state.selectedBlockId,
+                position: "after" as const,
+              }
+            : undefined;
+
           dispatch({
             type: "ADD_BLOCK",
-            payload: { block },
+            payload: { block, insert },
           });
         }}
       />
