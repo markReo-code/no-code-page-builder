@@ -13,7 +13,13 @@ export type PageBlock = {
   };
 };
 
+export type BlockInsertPosition = {
+  targetBlockId: string;
+  position: "before" | "after";
+};
+
 export type BuilderState = {
   blocks: PageBlock[];
   selectedBlockId: string | null;
+  pendingInsertPosition: BlockInsertPosition | null;
 };

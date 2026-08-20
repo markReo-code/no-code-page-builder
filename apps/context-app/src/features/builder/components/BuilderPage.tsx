@@ -19,17 +19,39 @@ const BuilderPage = () => {
         onAddBlock={(type) => {
           const block = createBlock(type);
 
-          const insert = state.selectedBlockId
-            ? {
-                targetBlockId: state.selectedBlockId,
-                position: "after" as const,
-              }
-            : undefined;
+          // ユーザーが事前に指定していた挿入予定位置
+          let insert = state.pendingInsertPosition;
 
+          if (!insert && state.selectedBlockId) {
+            insert = {
+              targetBlockId: state.selectedBlockId,
+              position: "after",
+            };
+          }
+
+          // ① Blockを追加する
           dispatch({
             type: "ADD_BLOCK",
-            payload: { block, insert },
+            payload: {
+              block,
+              insert: insert ?? undefined,
+            },
           });
+
+          // ② 今追加したBlockを選択状態にする
+          dispatch({
+            type: "SELECT_BLOCK",
+            payload: {
+              blockId: block.id,
+            },
+          });
+
+          // ③ 使用済みの挿入予定位置を解除する
+          if (state.pendingInsertPosition) {
+            dispatch({
+              type: "CLEAR_PENDING_INSERT",
+            });
+          }
         }}
       />
       <PageCanvas
@@ -56,6 +78,13 @@ const BuilderPage = () => {
             payload: { blockId },
           });
         }}
+        onSetPendingInsert={(insertPosition) => {
+          dispatch({
+            type: "SET_PENDING_INSERT",
+            payload: insertPosition,
+          });
+        }}
+        pendingInsertPosition={state.pendingInsertPosition}
       />
       <PropertiesPanel
         selectedBlock={selectedBlock}
