@@ -1,20 +1,25 @@
-import type { PageBlock } from "../../types/builder";
+import type { BlockInsertPosition, PageBlock } from "../../types/builder";
 import type { CSSProperties } from "react";
+import InsertBlockButton from "./InsertBlockButton";
 
 type PageCanvasProps = {
   blocks: PageBlock[];
   selectedId: string | null;
+  pendingInsertPosition: BlockInsertPosition | null;
   onSelectBlock: (blockId: string | null) => void;
   onChangeContent: (blockId: string, content: string) => void;
   onDeleteBlock: (blockId: string) => void;
+  onSetPendingInsert: (insertPosition: BlockInsertPosition) => void;
 };
 
 const PageCanvas = ({
   blocks,
   selectedId,
+  pendingInsertPosition,
   onSelectBlock,
   onChangeContent,
   onDeleteBlock,
+  onSetPendingInsert,
 }: PageCanvasProps) => {
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLElement>,
@@ -41,6 +46,11 @@ const PageCanvas = ({
         {blocks.map((block) => {
           const isSelected = block.id === selectedId;
 
+          // とりあえず仮（まだ完全なUI/UXにはなっていないので）
+          const isPendingAfter =
+            pendingInsertPosition?.targetBlockId === block.id &&
+            pendingInsertPosition.position === "after";
+
           const blockStyle: CSSProperties = {
             fontSize: block.styles.fontSize,
             fontWeight: block.styles.fontWeight,
@@ -56,8 +66,8 @@ const PageCanvas = ({
               }}
               className={
                 isSelected
-                  ? "outline outline-2 outline-blue-500"
-                  : "outline outline-1 outline-transparent"
+                  ? "relative outline outline-2 outline-blue-500"
+                  : "relative outline outline-1 outline-transparent"
               }
               style={blockStyle}
             >
@@ -109,6 +119,18 @@ const PageCanvas = ({
                 </button>
               )}
               {block.type === "image" && <div>{block.content}</div>}
+
+              {isSelected && (
+                <InsertBlockButton
+                  isActive={isPendingAfter}
+                  onClick={() => {
+                    onSetPendingInsert({
+                      targetBlockId: block.id,
+                      position: "after",
+                    });
+                  }}
+                />
+              )}
             </div>
           );
         })}

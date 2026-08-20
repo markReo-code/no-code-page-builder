@@ -1,4 +1,8 @@
-import type { BuilderState, PageBlock } from "@repo/ui/types/builder";
+import type {
+  BuilderState,
+  BlockInsertPosition,
+  PageBlock,
+} from "@repo/ui/types/builder";
 
 type SelectBlockAction = {
   type: "SELECT_BLOCK";
@@ -27,10 +31,7 @@ type AddBlockAction = {
   type: "ADD_BLOCK";
   payload: {
     block: PageBlock;
-    insert?: {
-      targetBlockId: string;
-      position: "before" | "after";
-    };
+    insert?: BlockInsertPosition;
   };
 };
 
@@ -41,12 +42,25 @@ type DeleteBlockAction = {
   };
 };
 
+// 挿入予定位置を保存するAction
+type SetPendingInsertAction = {
+  type: "SET_PENDING_INSERT";
+  payload: BlockInsertPosition;
+};
+
+// 保存していた挿入予定位置を削除するAction
+type ClearPendingInsertAction = {
+  type: "CLEAR_PENDING_INSERT";
+};
+
 export type BuilderAction =
   | SelectBlockAction
   | UpdateBlockContentAction
   | UpdateBlockStyleAction
   | AddBlockAction
-  | DeleteBlockAction;
+  | DeleteBlockAction
+  | SetPendingInsertAction
+  | ClearPendingInsertAction;
 
 export const builderReducer = (
   state: BuilderState,
@@ -129,6 +143,20 @@ export const builderReducer = (
       };
     }
 
+    // SET_PENDING_INSERT
+    case "SET_PENDING_INSERT":
+      return {
+        ...state,
+        pendingInsertPosition: action.payload,
+      };
+
+    // CLEAR_PENDING_INSERT
+    case "CLEAR_PENDING_INSERT":
+      return {
+        ...state,
+        pendingInsertPosition: null,
+      };
+
     // DELETE_BLOCK
     case "DELETE_BLOCK":
       return {
@@ -137,10 +165,17 @@ export const builderReducer = (
           (block) => block.id !== action.payload.blockId,
         ),
 
+        // 削除されたBlockを「選択中」として残さない
         selectedBlockId:
           state.selectedBlockId === action.payload.blockId
             ? null
             : state.selectedBlockId,
+
+        // 削除されたBlockを「挿入基準」として残さない
+        pendingInsertPosition:
+          state.pendingInsertPosition?.targetBlockId === action.payload.blockId
+            ? null
+            : state.pendingInsertPosition,
       };
   }
 };
