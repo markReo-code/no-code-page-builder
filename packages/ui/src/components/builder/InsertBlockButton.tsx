@@ -1,16 +1,21 @@
+import { Plus } from "lucide-react";
+
 type InsertBlockButtonProps = {
-  isActive: boolean;
   onClick: () => void;
 };
 
-const InsertBlockButton = ({ onClick, isActive }: InsertBlockButtonProps) => {
+const InsertBlockButton = ({ onClick }: InsertBlockButtonProps) => {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={`absolute right-2 bottom-2 ${isActive ? "text-blue-500" : ""}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-[2px] bg-[#1e1e1e] p-0 text-white hover:bg-black"
+      aria-label="ブロックを追加"
     >
-      +
+      <Plus className="block size-4" aria-hidden="true" />
     </button>
   );
 };

@@ -39,6 +39,7 @@ type DeleteBlockAction = {
   type: "DELETE_BLOCK";
   payload: {
     blockId: string;
+    nextSelectedBlockId?: string | null;
   };
 };
 
@@ -168,7 +169,7 @@ export const builderReducer = (
         // 削除されたBlockを「選択中」として残さない
         selectedBlockId:
           state.selectedBlockId === action.payload.blockId
-            ? null
+            ? (action.payload.nextSelectedBlockId ?? null)
             : state.selectedBlockId,
 
         // 削除されたBlockを「挿入基準」として残さない

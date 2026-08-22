@@ -6,6 +6,7 @@ import PropertiesPanel from "@repo/ui/components/builder/PropertiesPanel";
 import { useBuilderContext } from "../context/BuilderContext";
 
 import { createBlock } from "@repo/ui/lib/builder/createBlock";
+import { BlockType } from "@repo/ui/types/builder";
 
 const BuilderPage = () => {
   const { state, dispatch } = useBuilderContext();
@@ -13,47 +14,43 @@ const BuilderPage = () => {
   const selectedBlock =
     state.blocks.find((block) => block.id === state.selectedBlockId) ?? null;
 
+  const handleAddBlock = (type: BlockType) => {
+    const block = createBlock(type);
+
+    let insert = state.pendingInsertPosition;
+
+    if (!insert && state.selectedBlockId) {
+      insert = {
+        targetBlockId: state.selectedBlockId,
+        position: "after",
+      };
+    }
+
+    dispatch({
+      type: "ADD_BLOCK",
+      payload: {
+        block,
+        insert: insert ?? undefined,
+      },
+    });
+
+    dispatch({
+      type: "SELECT_BLOCK",
+      payload: {
+        blockId: block.id,
+      },
+    });
+
+    if (state.pendingInsertPosition) {
+      dispatch({
+        type: "CLEAR_PENDING_INSERT",
+      });
+    }
+  };
+
   return (
     <div className="h-full grid grid-cols-[220px_minmax(0,1fr)_280px] divide-x divide-gray-300">
-      <ComponentsSidebar
-        onAddBlock={(type) => {
-          const block = createBlock(type);
-
-          // ユーザーが事前に指定していた挿入予定位置
-          let insert = state.pendingInsertPosition;
-
-          if (!insert && state.selectedBlockId) {
-            insert = {
-              targetBlockId: state.selectedBlockId,
-              position: "after",
-            };
-          }
-
-          // ① Blockを追加する
-          dispatch({
-            type: "ADD_BLOCK",
-            payload: {
-              block,
-              insert: insert ?? undefined,
-            },
-          });
-
-          // ② 今追加したBlockを選択状態にする
-          dispatch({
-            type: "SELECT_BLOCK",
-            payload: {
-              blockId: block.id,
-            },
-          });
-
-          // ③ 使用済みの挿入予定位置を解除する
-          if (state.pendingInsertPosition) {
-            dispatch({
-              type: "CLEAR_PENDING_INSERT",
-            });
-          }
-        }}
-      />
+      <ComponentsSidebar onAddBlock={handleAddBlock} />
       <PageCanvas
         blocks={state.blocks}
         selectedId={state.selectedBlockId}
@@ -72,10 +69,10 @@ const BuilderPage = () => {
             },
           });
         }}
-        onDeleteBlock={(blockId) => {
+        onDeleteBlock={(blockId, nextSelectedBlockId) => {
           dispatch({
             type: "DELETE_BLOCK",
-            payload: { blockId },
+            payload: { blockId, nextSelectedBlockId },
           });
         }}
         onSetPendingInsert={(insertPosition) => {
@@ -84,7 +81,7 @@ const BuilderPage = () => {
             payload: insertPosition,
           });
         }}
-        pendingInsertPosition={state.pendingInsertPosition}
+        onAddBlock={handleAddBlock}
       />
       <PropertiesPanel
         selectedBlock={selectedBlock}
