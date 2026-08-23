@@ -48,6 +48,53 @@ const BuilderPage = () => {
     }
   };
 
+  const handleReplaceBlock = (blockId: string, type: BlockType) => {
+    const block = createBlock(type);
+
+    dispatch({
+      type: "REPLACE_BLOCK",
+      payload: {
+        blockId,
+        block,
+      },
+    });
+
+    return block.id;
+  };
+
+  const handleInsertTextBlockAfter = (blockId: string) => {
+    const block = {
+      ...createBlock("paragraph"),
+      content: "",
+    };
+
+    dispatch({
+      type: "ADD_BLOCK",
+      payload: {
+        block,
+        insert: {
+          targetBlockId: blockId,
+          position: "after",
+        },
+      },
+    });
+
+    dispatch({
+      type: "SELECT_BLOCK",
+      payload: {
+        blockId: block.id,
+      },
+    });
+
+    if (state.pendingInsertPosition) {
+      dispatch({
+        type: "CLEAR_PENDING_INSERT",
+      });
+    }
+
+    return block.id;
+  };
+
   return (
     <div className="h-full grid grid-cols-[220px_minmax(0,1fr)_280px] divide-x divide-gray-300">
       <ComponentsSidebar onAddBlock={handleAddBlock} />
@@ -82,6 +129,8 @@ const BuilderPage = () => {
           });
         }}
         onAddBlock={handleAddBlock}
+        onInsertTextBlockAfter={handleInsertTextBlockAfter}
+        onReplaceBlock={handleReplaceBlock}
       />
       <PropertiesPanel
         selectedBlock={selectedBlock}

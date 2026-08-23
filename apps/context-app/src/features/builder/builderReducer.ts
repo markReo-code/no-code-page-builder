@@ -11,6 +11,30 @@ type SelectBlockAction = {
   };
 };
 
+type AddBlockAction = {
+  type: "ADD_BLOCK";
+  payload: {
+    block: PageBlock;
+    insert?: BlockInsertPosition;
+  };
+};
+
+type ReplaceBlockAction = {
+  type: "REPLACE_BLOCK";
+  payload: {
+    blockId: string;
+    block: PageBlock;
+  };
+};
+
+type DeleteBlockAction = {
+  type: "DELETE_BLOCK";
+  payload: {
+    blockId: string;
+    nextSelectedBlockId?: string | null;
+  };
+};
+
 type UpdateBlockContentAction = {
   type: "UPDATE_BLOCK_CONTENT";
   payload: {
@@ -27,22 +51,6 @@ type UpdateBlockStyleAction = {
   };
 };
 
-type AddBlockAction = {
-  type: "ADD_BLOCK";
-  payload: {
-    block: PageBlock;
-    insert?: BlockInsertPosition;
-  };
-};
-
-type DeleteBlockAction = {
-  type: "DELETE_BLOCK";
-  payload: {
-    blockId: string;
-    nextSelectedBlockId?: string | null;
-  };
-};
-
 // 挿入予定位置を保存するAction
 type SetPendingInsertAction = {
   type: "SET_PENDING_INSERT";
@@ -56,10 +64,11 @@ type ClearPendingInsertAction = {
 
 export type BuilderAction =
   | SelectBlockAction
+  | AddBlockAction
+  | ReplaceBlockAction
+  | DeleteBlockAction
   | UpdateBlockContentAction
   | UpdateBlockStyleAction
-  | AddBlockAction
-  | DeleteBlockAction
   | SetPendingInsertAction
   | ClearPendingInsertAction;
 
@@ -72,36 +81,6 @@ export const builderReducer = (
       return {
         ...state,
         selectedBlockId: action.payload.blockId,
-      };
-    // UPDATE_BLOCK_CONTENT content更新
-    case "UPDATE_BLOCK_CONTENT":
-      return {
-        ...state,
-        blocks: state.blocks.map((block) => {
-          return block.id === action.payload.blockId
-            ? {
-                ...block,
-                content: action.payload.content,
-              }
-            : block;
-        }),
-      };
-
-    // UPDATE_BLOCK_STYLES styles更新
-    case "UPDATE_BLOCK_STYLES":
-      return {
-        ...state,
-        blocks: state.blocks.map((block) => {
-          return block.id === action.payload.blockId
-            ? {
-                ...block,
-                styles: {
-                  ...block.styles,
-                  ...action.payload.styles,
-                },
-              }
-            : block;
-        }),
       };
 
     // ADD_BLOCK
@@ -144,17 +123,16 @@ export const builderReducer = (
       };
     }
 
-    // SET_PENDING_INSERT
-    case "SET_PENDING_INSERT":
+    // REPLACE_BLOCK
+    case "REPLACE_BLOCK":
       return {
         ...state,
-        pendingInsertPosition: action.payload,
-      };
-
-    // CLEAR_PENDING_INSERT
-    case "CLEAR_PENDING_INSERT":
-      return {
-        ...state,
+        blocks: state.blocks.map((block) => {
+          return block.id === action.payload.blockId
+            ? action.payload.block
+            : block;
+        }),
+        selectedBlockId: action.payload.block.id,
         pendingInsertPosition: null,
       };
 
@@ -177,6 +155,51 @@ export const builderReducer = (
           state.pendingInsertPosition?.targetBlockId === action.payload.blockId
             ? null
             : state.pendingInsertPosition,
+      };
+
+    // UPDATE_BLOCK_CONTENT content更新
+    case "UPDATE_BLOCK_CONTENT":
+      return {
+        ...state,
+        blocks: state.blocks.map((block) => {
+          return block.id === action.payload.blockId
+            ? {
+                ...block,
+                content: action.payload.content,
+              }
+            : block;
+        }),
+      };
+
+    // UPDATE_BLOCK_STYLES styles更新
+    case "UPDATE_BLOCK_STYLES":
+      return {
+        ...state,
+        blocks: state.blocks.map((block) => {
+          return block.id === action.payload.blockId
+            ? {
+                ...block,
+                styles: {
+                  ...block.styles,
+                  ...action.payload.styles,
+                },
+              }
+            : block;
+        }),
+      };
+
+    // SET_PENDING_INSERT
+    case "SET_PENDING_INSERT":
+      return {
+        ...state,
+        pendingInsertPosition: action.payload,
+      };
+
+    // CLEAR_PENDING_INSERT
+    case "CLEAR_PENDING_INSERT":
+      return {
+        ...state,
+        pendingInsertPosition: null,
       };
   }
 };
