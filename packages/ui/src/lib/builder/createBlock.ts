@@ -1,26 +1,35 @@
-import { PageBlock, BlockType } from "../../types/builder";
+import {
+  PageBlock,
+  BlockTemplate,
+  HeadingLevel,
+  TextBlockStyles,
+} from "../../types/builder";
 
-// とりあえず雛形だけ
+const HEADING_DEFAULT_STYLES: Record<HeadingLevel, TextBlockStyles> = {
+  1: { fontSize: 36, fontWeight: 700, textAlign: "left" },
+  2: { fontSize: 30, fontWeight: 700, textAlign: "left" },
+  3: { fontSize: 24, fontWeight: 700, textAlign: "left" },
+  4: { fontSize: 20, fontWeight: 700, textAlign: "left" },
+  5: { fontSize: 18, fontWeight: 700, textAlign: "left" },
+  6: { fontSize: 16, fontWeight: 700, textAlign: "left" },
+};
 
-export const createBlock = (type: BlockType): PageBlock => {
-  switch (type) {
+export const createBlock = (template: BlockTemplate): PageBlock => {
+  switch (template.type) {
     case "heading":
       return {
         id: crypto.randomUUID(),
-        type,
-        content: "Heading",
-        styles: {
-          fontSize: 36,
-          fontWeight: 700,
-          textAlign: "left",
-        },
+        type: "heading",
+        content: `見出し ${template.headingLevel}`,
+        headingLevel: template.headingLevel,
+        styles: HEADING_DEFAULT_STYLES[template.headingLevel],
       };
 
     case "paragraph":
       return {
         id: crypto.randomUUID(),
-        type,
-        content: "Paragraph",
+        type: "paragraph",
+        content: "テキスト",
         styles: {
           fontSize: 16,
           fontWeight: 400,
@@ -31,8 +40,8 @@ export const createBlock = (type: BlockType): PageBlock => {
     case "button":
       return {
         id: crypto.randomUUID(),
-        type,
-        content: "Button",
+        type: "button",
+        content: "ボタン",
         styles: {
           fontSize: 16,
           fontWeight: 700,
@@ -43,8 +52,8 @@ export const createBlock = (type: BlockType): PageBlock => {
     case "image":
       return {
         id: crypto.randomUUID(),
-        type,
-        content: "Image",
+        type: "image",
+        content: "画像",
         styles: {},
       };
   }

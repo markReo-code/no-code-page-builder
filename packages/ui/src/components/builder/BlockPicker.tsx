@@ -1,45 +1,10 @@
-import {
-  ImageIcon,
-  LucideIcon,
-  MousePointerClick,
-  Pilcrow,
-  Type,
-} from "lucide-react";
-import { BlockType } from "../../types/builder";
+import type { BlockTemplate } from "../../types/builder";
+import { blockTemplateItems } from "../../lib/builder/blockTemplates";
 
 type BlockPickerProps = {
-  onSelectBlockType: (type: BlockType) => void;
+  onSelectBlockType: (type: BlockTemplate) => void;
   onClose: () => void;
 };
-
-type BlockPickerItem = {
-  type: BlockType;
-  label: string;
-  icon: LucideIcon;
-};
-
-const blockPickerItems: BlockPickerItem[] = [
-  {
-    type: "heading",
-    label: "見出し",
-    icon: Type,
-  },
-  {
-    type: "paragraph",
-    label: "テキスト",
-    icon: Pilcrow,
-  },
-  {
-    type: "image",
-    label: "画像",
-    icon: ImageIcon,
-  },
-  {
-    type: "button",
-    label: "ボタン",
-    icon: MousePointerClick,
-  },
-];
 
 const BlockPicker = ({ onSelectBlockType, onClose }: BlockPickerProps) => {
   return (
@@ -47,17 +12,17 @@ const BlockPicker = ({ onSelectBlockType, onClose }: BlockPickerProps) => {
       className="absolute right-2 top-full z-50 mt-2 w-72 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="max-h-80">
-        {blockPickerItems.map((item) => {
+      <div className="max-h-80 overflow-auto">
+        {blockTemplateItems.map((item) => {
           const Icon = item.icon;
 
           return (
             <button
               type="button"
-              key={item.type}
+              key={item.id}
               className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-gray-100"
               onClick={() => {
-                onSelectBlockType(item.type);
+                onSelectBlockType(item.template);
               }}
             >
               <Icon className="size-5 shrink-0 text-gray-700" />

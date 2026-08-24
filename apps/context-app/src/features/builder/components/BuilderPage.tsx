@@ -6,7 +6,7 @@ import PropertiesPanel from "@repo/ui/components/builder/PropertiesPanel";
 import { useBuilderContext } from "../context/BuilderContext";
 
 import { createBlock } from "@repo/ui/lib/builder/createBlock";
-import { BlockType } from "@repo/ui/types/builder";
+import { BlockTemplate } from "@repo/ui/types/builder";
 
 const BuilderPage = () => {
   const { state, dispatch } = useBuilderContext();
@@ -14,8 +14,8 @@ const BuilderPage = () => {
   const selectedBlock =
     state.blocks.find((block) => block.id === state.selectedBlockId) ?? null;
 
-  const handleAddBlock = (type: BlockType) => {
-    const block = createBlock(type);
+  const handleAddBlock = (template: BlockTemplate) => {
+    const block = createBlock(template);
 
     let insert = state.pendingInsertPosition;
 
@@ -48,8 +48,8 @@ const BuilderPage = () => {
     }
   };
 
-  const handleReplaceBlock = (blockId: string, type: BlockType) => {
-    const block = createBlock(type);
+  const handleReplaceBlock = (blockId: string, template: BlockTemplate) => {
+    const block = createBlock(template);
 
     dispatch({
       type: "REPLACE_BLOCK",
@@ -64,7 +64,7 @@ const BuilderPage = () => {
 
   const handleInsertTextBlockAfter = (blockId: string) => {
     const block = {
-      ...createBlock("paragraph"),
+      ...createBlock({ type: "paragraph" }),
       content: "",
     };
 

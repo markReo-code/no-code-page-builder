@@ -2,7 +2,7 @@
 
 import type {
   BlockInsertPosition,
-  BlockType,
+  BlockTemplate,
   PageBlock,
 } from "../../types/builder";
 import {
@@ -22,11 +22,10 @@ type PageCanvasProps = {
   onChangeContent: (blockId: string, content: string) => void;
   onDeleteBlock: (blockId: string, nextSelectedBlockId?: string | null) => void;
   onSetPendingInsert: (insertPosition: BlockInsertPosition) => void;
-  onAddBlock: (type: BlockType) => void;
-
+  onAddBlock: (template: BlockTemplate) => void;
   // Enter で現在の block の直後に空の text block を追加する
   onInsertTextBlockAfter: (blockId: string) => string;
-  onReplaceBlock: (blockId: string, type: BlockType) => string;
+  onReplaceBlock: (blockId: string, template: BlockTemplate) => string;
 };
 
 type PendingFocus = {
@@ -84,6 +83,15 @@ const isCaretAtEnd = (element: HTMLElement) => {
   return textAfterCaretRange.toString() === "";
 };
 
+const headingTagByLevel = {
+  1: "h1",
+  2: "h2",
+  3: "h3",
+  4: "h4",
+  5: "h5",
+  6: "h6",
+} as const;
+
 const PageCanvas = ({
   blocks,
   selectedId,
@@ -107,6 +115,7 @@ const PageCanvas = ({
     setOpenPickerBlockId(null);
   };
 
+  // contentEditable の DOM を blockId ごとに保持する
   const registerEditableRef = (blockId: string) => {
     return (node: HTMLElement | null) => {
       if (node) {
@@ -226,6 +235,66 @@ const PageCanvas = ({
     };
   }, [openPickerBlockId]);
 
+  // block の種類に応じた編集可能な表示内容を描画する
+  const renderBlockContent = (block: PageBlock) => {
+    switch (block.type) {
+      case "heading": {
+        const HeadingTag = headingTagByLevel[block.headingLevel];
+
+        return (
+          <HeadingTag
+            ref={registerEditableRef(block.id)}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => {
+              onChangeContent(block.id, e.currentTarget.textContent ?? "");
+            }}
+            onKeyDown={(e) => handleKeyDown(e, block)}
+            className="outline-none"
+          >
+            {block.content}
+          </HeadingTag>
+        );
+      }
+
+      case "paragraph":
+        return (
+          <p
+            ref={registerEditableRef(block.id)}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => {
+              onChangeContent(block.id, e.currentTarget.textContent ?? "");
+            }}
+            onKeyDown={(e) => handleKeyDown(e, block)}
+            className="outline-none"
+          >
+            {block.content}
+          </p>
+        );
+
+      case "button":
+        return (
+          <button
+            type="button"
+            ref={registerEditableRef(block.id)}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={(e) => {
+              onChangeContent(block.id, e.currentTarget.textContent ?? "");
+            }}
+            onKeyDown={(e) => handleKeyDown(e, block)}
+            className="outline-none"
+          >
+            {block.content}
+          </button>
+        );
+
+      case "image":
+        return <div>{block.content}</div>;
+    }
+  };
+
   return (
     <section
       ref={canvasRef}
@@ -257,60 +326,7 @@ const PageCanvas = ({
               }`}
               style={blockStyle}
             >
-              {block.type === "heading" && (
-                <h1
-                  ref={registerEditableRef(block.id)}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    onChangeContent(
-                      block.id,
-                      e.currentTarget.textContent ?? "",
-                    );
-                  }}
-                  onKeyDown={(e) => handleKeyDown(e, block)}
-                  className="outline-none"
-                >
-                  {block.content}
-                </h1>
-              )}
-
-              {block.type === "paragraph" && (
-                <p
-                  ref={registerEditableRef(block.id)}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    onChangeContent(
-                      block.id,
-                      e.currentTarget.textContent ?? "",
-                    );
-                  }}
-                  onKeyDown={(e) => handleKeyDown(e, block)}
-                  className="outline-none"
-                >
-                  {block.content}
-                </p>
-              )}
-              {block.type === "button" && (
-                <button
-                  type="button"
-                  ref={registerEditableRef(block.id)}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    onChangeContent(
-                      block.id,
-                      e.currentTarget.textContent ?? "",
-                    );
-                  }}
-                  onKeyDown={(e) => handleKeyDown(e, block)}
-                  className="outline-none"
-                >
-                  {block.content}
-                </button>
-              )}
-              {block.type === "image" && <div>{block.content}</div>}
+              {renderBlockContent(block)}
 
               {isSelected && (
                 <InsertBlockButton
