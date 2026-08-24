@@ -30,6 +30,24 @@ type PropertiesPanelProps = {
   onDeleteBlock: (blockId: string) => void;
 };
 
+const getBlockLabel = (block: PageBlock) => {
+  if (block.type === "heading") {
+    return `見出し ${block.headingLevel}`;
+  }
+
+  if (block.type === "paragraph") {
+    return "テキスト";
+  }
+
+  if (block.type === "button") {
+    return "ボタン";
+  }
+
+  if (block.type === "image") {
+    return "画像";
+  }
+};
+
 const PropertiesPanel = ({
   selectedBlock,
   onChangeStyles,
@@ -39,7 +57,9 @@ const PropertiesPanel = ({
     <aside className="">
       <div className="px-4 py-4 border-b border-gray-300">
         <h2 className="text-blue-500 font-medium">Properties</h2>
-        {selectedBlock && <p className="capitalize">{selectedBlock.type}</p>}
+        {selectedBlock && (
+          <p className="capitalize">{getBlockLabel(selectedBlock)}</p>
+        )}
       </div>
       {selectedBlock && (
         <div className="space-y-7 px-6 py-6">
