@@ -1,8 +1,21 @@
+// UIでの選択情報
 export type BlockTemplate =
   | { type: "heading"; headingLevel: HeadingLevel }
   | { type: "paragraph" }
   | { type: "button" }
   | { type: "image" };
+
+// Block生成に必要な情報が揃った状態
+export type CreateBlockInput =
+  | { type: "heading"; headingLevel: HeadingLevel }
+  | { type: "paragraph" }
+  | { type: "button" }
+  | {
+      type: "image";
+      src: string;
+      alt: string;
+      fileName?: string;
+    };
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -36,19 +49,27 @@ export type ButtonBlock = {
   styles: TextBlockStyles;
 };
 
-// 別ブランチやる予定なので、とりあえず互換性のため残しています
+// 編集中
+// export type ImageBlockStyles = {
+//   width?: number;
+//   borderRadius?: number;
+//   alignment?: "left" | "center" | "right";
+// };
+
 export type ImageBlock = {
   id: string;
   type: "image";
-  content: string;
-  styles: TextBlockStyles;
+  src: string;
+  alt: string;
+  fileName?: string;
+  // mimeType: string;
+  // size: number;
+  // styles: ImageBlockStyles;
 };
 
-export type PageBlock =
-  | HeadingBlock
-  | ParagraphBlock
-  | ButtonBlock
-  | ImageBlock;
+export type TextBlock = HeadingBlock | ParagraphBlock | ButtonBlock;
+
+export type PageBlock = TextBlock | ImageBlock;
 
 export type BlockInsertPosition = {
   targetBlockId: string;
