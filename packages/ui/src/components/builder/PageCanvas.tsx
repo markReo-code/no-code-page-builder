@@ -14,6 +14,7 @@ import {
 } from "react";
 import InsertBlockButton from "./InsertBlockButton";
 import BlockPicker from "./BlockPicker";
+import { isTextBlock } from "../../lib/builder/blockGuards";
 
 type PageCanvasProps = {
   blocks: PageBlock[];
@@ -108,6 +109,7 @@ const PageCanvas = ({
   );
   const canvasRef = useRef<HTMLElement | null>(null);
   const editableRefs = useRef(new Map<string, HTMLElement>());
+  const blockWrapperRefs = useRef(new Map<string, HTMLDivElement>());
   const pendingFocusRef = useRef<PendingFocus | null>(null);
 
   // BlockPicker を閉じる共通処理
@@ -122,6 +124,17 @@ const PageCanvas = ({
         editableRefs.current.set(blockId, node);
       } else {
         editableRefs.current.delete(blockId);
+      }
+    };
+  };
+
+  // Block wrapper のDOMを blockId ごとに保持する
+  const registerBlockWrapperRef = (blockId: string) => {
+    return (node: HTMLDivElement | null) => {
+      if (node) {
+        blockWrapperRefs.current.set(blockId, node);
+      } else {
+        blockWrapperRefs.current.delete(blockId);
       }
     };
   };
@@ -145,6 +158,26 @@ const PageCanvas = ({
   const handleClearSelection = () => {
     closeBlockPicker();
     onSelectBlock(null);
+  };
+
+  // block を削除し、前後の block へ focus を移す
+  const deleteBlockAndMoveFocus = (blockId: string) => {
+    const currentIndex = blocks.findIndex((currentBlock) => {
+      return currentBlock.id === blockId;
+    });
+
+    const previousBlock = blocks[currentIndex - 1] ?? null;
+    const nextBlock = blocks[currentIndex + 1] ?? null;
+    const nextFocusBlockId = previousBlock?.id ?? nextBlock?.id ?? null;
+
+    if (nextFocusBlockId) {
+      pendingFocusRef.current = {
+        blockId: nextFocusBlockId,
+        caret: previousBlock ? "end" : "start",
+      };
+    }
+
+    onDeleteBlock(blockId, nextFocusBlockId);
   };
 
   // Enter で空 block を追加し、空 block の Backspace で削除する
@@ -179,22 +212,37 @@ const PageCanvas = ({
 
     e.preventDefault();
 
-    const currentIndex = blocks.findIndex((currentBlock) => {
-      return currentBlock.id === block.id;
-    });
+    deleteBlockAndMoveFocus(block.id);
+  };
 
-    const previousBlock = blocks[currentIndex - 1] ?? null;
-    const nextBlock = blocks[currentIndex + 1] ?? null;
-    const nextFocusBlockId = previousBlock?.id ?? nextBlock?.id ?? null;
-
-    if (nextFocusBlockId) {
-      pendingFocusRef.current = {
-        blockId: nextFocusBlockId,
-        caret: previousBlock ? "end" : "start",
-      };
+  // Image などの非TextBlock のキーボード操作を扱う
+  const handleBlockWrapperKeyDown = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    block: PageBlock,
+  ) => {
+    if (isTextBlock(block)) {
+      return;
     }
 
-    onDeleteBlock(block.id, nextFocusBlockId);
+    if (e.nativeEvent.isComposing) {
+      return;
+    }
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      const newBlockId = onInsertTextBlockAfter(block.id);
+
+      pendingFocusRef.current = {
+        blockId: newBlockId,
+        caret: "start",
+      };
+      return;
+    }
+
+    if (e.key === "Backspace" || e.key === "Delete") {
+      e.preventDefault();
+      deleteBlockAndMoveFocus(block.id);
+    }
   };
 
   // block 追加・削除後に、予約された block へ focus / caret を復元する
@@ -202,13 +250,20 @@ const PageCanvas = ({
     const pending = pendingFocusRef.current;
     if (!pending) return;
 
-    const element = editableRefs.current.get(pending.blockId);
-    if (!element) {
+    const editableElement = editableRefs.current.get(pending.blockId);
+
+    if (editableElement) {
+      setCaret(editableElement, pending.caret);
       pendingFocusRef.current = null;
       return;
     }
 
-    setCaret(element, pending.caret);
+    const wrapperElement = blockWrapperRefs.current.get(pending.blockId);
+
+    if (wrapperElement) {
+      wrapperElement.focus();
+    }
+
     pendingFocusRef.current = null;
   }, [blocks, selectedId]);
 
@@ -291,7 +346,7 @@ const PageCanvas = ({
         );
 
       case "image":
-        return <div>{block.content}</div>;
+        return <img src={block.src} alt={block.alt} className="max-w-full" />;
     }
   };
 
@@ -305,19 +360,31 @@ const PageCanvas = ({
         {blocks.map((block) => {
           const isSelected = block.id === selectedId;
 
-          const blockStyle: CSSProperties = {
-            fontSize: block.styles.fontSize,
-            fontWeight: block.styles.fontWeight,
-            textAlign: block.styles.textAlign,
-          };
+          const blockStyle: CSSProperties = isTextBlock(block)
+            ? {
+                fontSize: block.styles.fontSize,
+                fontWeight: block.styles.fontWeight,
+                textAlign: block.styles.textAlign,
+              }
+            : {};
 
           return (
             <div
               key={block.id}
+              ref={registerBlockWrapperRef(block.id)}
+              tabIndex={block.type === "image" ? 0 : undefined}
+              onKeyDown={(e) => {
+                handleBlockWrapperKeyDown(e, block);
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 closeBlockPicker();
                 onSelectBlock(block.id);
+
+                // 非TextBlockはwrapperをfocusしてキーボード操作できるようにする
+                if (!isTextBlock(block)) {
+                  e.currentTarget.focus();
+                }
               }}
               className={`relative min-h-[1em] p-2 ${
                 isSelected

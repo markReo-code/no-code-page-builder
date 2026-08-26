@@ -1,7 +1,9 @@
+import { isTextBlock } from "@repo/ui/lib/builder/blockGuards";
 import type {
   BuilderState,
   BlockInsertPosition,
   PageBlock,
+  TextBlockStyles,
 } from "@repo/ui/types/builder";
 
 type SelectBlockAction = {
@@ -47,7 +49,7 @@ type UpdateBlockStyleAction = {
   type: "UPDATE_BLOCK_STYLES";
   payload: {
     blockId: string;
-    styles: Partial<PageBlock["styles"]>;
+    styles: Partial<TextBlockStyles>;
   };
 };
 
@@ -162,7 +164,7 @@ export const builderReducer = (
       return {
         ...state,
         blocks: state.blocks.map((block) => {
-          return block.id === action.payload.blockId
+          return block.id === action.payload.blockId && isTextBlock(block)
             ? {
                 ...block,
                 content: action.payload.content,
@@ -176,7 +178,7 @@ export const builderReducer = (
       return {
         ...state,
         blocks: state.blocks.map((block) => {
-          return block.id === action.payload.blockId
+          return block.id === action.payload.blockId && isTextBlock(block)
             ? {
                 ...block,
                 styles: {

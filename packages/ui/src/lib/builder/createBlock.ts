@@ -1,8 +1,8 @@
 import {
   PageBlock,
-  BlockTemplate,
   HeadingLevel,
   TextBlockStyles,
+  CreateBlockInput,
 } from "../../types/builder";
 
 const HEADING_DEFAULT_STYLES: Record<HeadingLevel, TextBlockStyles> = {
@@ -14,15 +14,15 @@ const HEADING_DEFAULT_STYLES: Record<HeadingLevel, TextBlockStyles> = {
   6: { fontSize: 16, fontWeight: 700, textAlign: "left" },
 };
 
-export const createBlock = (template: BlockTemplate): PageBlock => {
-  switch (template.type) {
+export const createBlock = (input: CreateBlockInput): PageBlock => {
+  switch (input.type) {
     case "heading":
       return {
         id: crypto.randomUUID(),
         type: "heading",
-        content: `見出し ${template.headingLevel}`,
-        headingLevel: template.headingLevel,
-        styles: HEADING_DEFAULT_STYLES[template.headingLevel],
+        content: `見出し ${input.headingLevel}`,
+        headingLevel: input.headingLevel,
+        styles: HEADING_DEFAULT_STYLES[input.headingLevel],
       };
 
     case "paragraph":
@@ -53,8 +53,9 @@ export const createBlock = (template: BlockTemplate): PageBlock => {
       return {
         id: crypto.randomUUID(),
         type: "image",
-        content: "画像",
-        styles: {},
+        src: input.src,
+        alt: input.alt,
+        fileName: input.fileName,
       };
   }
 };

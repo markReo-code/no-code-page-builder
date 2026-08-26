@@ -1,5 +1,10 @@
 import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
-import type { PageBlock, TextAlign } from "../../types/builder";
+import type {
+  PageBlock,
+  TextAlign,
+  TextBlockStyles,
+} from "../../types/builder";
+import { isTextBlock } from "../../lib/builder/blockGuards";
 import { FontSizeControl } from "./FontSizeControl";
 
 const FONT_WEIGHT_OPTIONS = [
@@ -26,7 +31,7 @@ const TEXT_ALIGN_OPTIONS = [
 
 type PropertiesPanelProps = {
   selectedBlock: PageBlock | null;
-  onChangeStyles: (styles: Partial<PageBlock["styles"]>) => void;
+  onChangeStyles: (styles: Partial<TextBlockStyles>) => void;
   onDeleteBlock: (blockId: string) => void;
 };
 
@@ -63,79 +68,83 @@ const PropertiesPanel = ({
       </div>
       {selectedBlock && (
         <div className="space-y-7 px-6 py-6">
-          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-            <label
-              htmlFor="font-size"
-              className="text-sm font-bold text-slate-600"
-            >
-              Size
-            </label>
-            <FontSizeControl
-              id="font-size"
-              value={selectedBlock?.styles.fontSize}
-              disabled={!selectedBlock}
-              onChange={(fontSize) => {
-                onChangeStyles({ fontSize });
-              }}
-            />
-          </div>
+          {isTextBlock(selectedBlock) && (
+            <>
+              <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
+                <label
+                  htmlFor="font-size"
+                  className="text-sm font-bold text-slate-600"
+                >
+                  Size
+                </label>
+                <FontSizeControl
+                  id="font-size"
+                  value={selectedBlock.styles.fontSize}
+                  disabled={false}
+                  onChange={(fontSize) => {
+                    onChangeStyles({ fontSize });
+                  }}
+                />
+              </div>
 
-          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
-            <label
-              htmlFor="font-weight"
-              className="text-sm font-bold text-slate-600"
-            >
-              Weight
-            </label>
-            <div className="w-full max-w-[224px] justify-self-end">
-              <select
-                id="font-weight"
-                className="h-11 w-full border border-slate-300 bg-white px-3 text-[15px] font-semibold text-slate-900 outline-none"
-                value={selectedBlock.styles.fontWeight ?? 400}
-                onChange={(e) => {
-                  const fontWeight = Number(e.currentTarget.value);
+              <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
+                <label
+                  htmlFor="font-weight"
+                  className="text-sm font-bold text-slate-600"
+                >
+                  Weight
+                </label>
+                <div className="w-full max-w-[224px] justify-self-end">
+                  <select
+                    id="font-weight"
+                    className="h-11 w-full border border-slate-300 bg-white px-3 text-[15px] font-semibold text-slate-900 outline-none"
+                    value={selectedBlock.styles.fontWeight ?? 400}
+                    onChange={(e) => {
+                      const fontWeight = Number(e.currentTarget.value);
 
-                  onChangeStyles({ fontWeight });
-                }}
-              >
-                {FONT_WEIGHT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+                      onChangeStyles({ fontWeight });
+                    }}
+                  >
+                    {FONT_WEIGHT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-bold text-slate-600">
-              Alignment
-            </legend>
-            <div className="grid w-full h-10 grid-cols-3 overflow-hidden rounded-[2px] border border-slate-300">
-              {TEXT_ALIGN_OPTIONS.map((option, index) => {
-                const Icon = option.icon;
-                const isActive =
-                  selectedBlock.styles.textAlign === option.value;
+              <fieldset className="space-y-3">
+                <legend className="text-sm font-bold text-slate-600">
+                  Alignment
+                </legend>
+                <div className="grid w-full h-10 grid-cols-3 overflow-hidden rounded-[2px] border border-slate-300">
+                  {TEXT_ALIGN_OPTIONS.map((option, index) => {
+                    const Icon = option.icon;
+                    const isActive =
+                      selectedBlock.styles.textAlign === option.value;
 
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-label={option.label}
-                    className={`grid place-items-center
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-label={option.label}
+                        className={`grid place-items-center
                       ${index !== TEXT_ALIGN_OPTIONS.length - 1 ? "border-r border-slate-300" : ""}
                       ${isActive ? "bg-blue-50 text-slate-900" : "bg-white text-slate-600"}
                       `}
-                    onClick={() => {
-                      onChangeStyles({ textAlign: option.value });
-                    }}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+                        onClick={() => {
+                          onChangeStyles({ textAlign: option.value });
+                        }}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            </>
+          )}
 
           <div>
             <button
