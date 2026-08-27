@@ -53,6 +53,14 @@ type UpdateBlockStyleAction = {
   };
 };
 
+type UpdateButtonHrefAction = {
+  type: "UPDATE_BUTTON_HREF";
+  payload: {
+    blockId: string;
+    href: string;
+  };
+};
+
 // 挿入予定位置を保存するAction
 type SetPendingInsertAction = {
   type: "SET_PENDING_INSERT";
@@ -71,6 +79,7 @@ export type BuilderAction =
   | DeleteBlockAction
   | UpdateBlockContentAction
   | UpdateBlockStyleAction
+  | UpdateButtonHrefAction
   | SetPendingInsertAction
   | ClearPendingInsertAction;
 
@@ -186,6 +195,16 @@ export const builderReducer = (
                   ...action.payload.styles,
                 },
               }
+            : block;
+        }),
+      };
+
+    case "UPDATE_BUTTON_HREF":
+      return {
+        ...state,
+        blocks: state.blocks.map((block) => {
+          return block.id === action.payload.blockId && block.type === "button"
+            ? { ...block, href: action.payload.href }
             : block;
         }),
       };

@@ -330,8 +330,7 @@ const PageCanvas = ({
 
       case "button":
         return (
-          <button
-            type="button"
+          <span
             ref={registerEditableRef(block.id)}
             contentEditable
             suppressContentEditableWarning
@@ -339,10 +338,10 @@ const PageCanvas = ({
               onChangeContent(block.id, e.currentTarget.textContent ?? "");
             }}
             onKeyDown={(e) => handleKeyDown(e, block)}
-            className="outline-none"
+            className="inline-flex min-h-10 max-w-full items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm leading-snug text-white outline-none whitespace-normal break-words"
           >
             {block.content}
-          </button>
+          </span>
         );
 
       case "image":
