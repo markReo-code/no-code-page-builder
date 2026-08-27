@@ -42,6 +42,7 @@ export const createBlock = (input: CreateBlockInput): PageBlock => {
         id: crypto.randomUUID(),
         type: "button",
         content: "ボタン",
+        href: "",
         styles: {
           fontSize: 16,
           fontWeight: 700,

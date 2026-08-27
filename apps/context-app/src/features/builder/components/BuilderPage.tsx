@@ -259,6 +259,17 @@ const BuilderPage = () => {
             },
           });
         }}
+        onChangeButtonHref={(href) => {
+          if (!selectedBlock || selectedBlock.type !== "button") return;
+
+          dispatch({
+            type: "UPDATE_BUTTON_HREF",
+            payload: {
+              blockId: selectedBlock.id,
+              href,
+            },
+          });
+        }}
         onDeleteBlock={(blockId) => {
           dispatch({
             type: "DELETE_BLOCK",

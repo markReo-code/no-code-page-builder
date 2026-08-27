@@ -32,6 +32,7 @@ const TEXT_ALIGN_OPTIONS = [
 type PropertiesPanelProps = {
   selectedBlock: PageBlock | null;
   onChangeStyles: (styles: Partial<TextBlockStyles>) => void;
+  onChangeButtonHref: (href: string) => void;
   onDeleteBlock: (blockId: string) => void;
 };
 
@@ -56,6 +57,7 @@ const getBlockLabel = (block: PageBlock) => {
 const PropertiesPanel = ({
   selectedBlock,
   onChangeStyles,
+  onChangeButtonHref,
   onDeleteBlock,
 }: PropertiesPanelProps) => {
   return (
@@ -70,6 +72,27 @@ const PropertiesPanel = ({
         <div className="space-y-7 px-6 py-6">
           {isTextBlock(selectedBlock) && (
             <>
+              {selectedBlock.type === "button" && (
+                <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
+                  <label
+                    htmlFor="button-href"
+                    className="text-sm font-bold text-slate-600"
+                  >
+                    Link
+                  </label>
+                  <input
+                    id="button-href"
+                    type="url"
+                    value={selectedBlock.href}
+                    placeholder="https://example.com"
+                    className="h-11 w-full border border-slate-300 bg-white px-3 text-[15px] text-slate-900 outline-none"
+                    onChange={(e) => {
+                      onChangeButtonHref(e.currentTarget.value);
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4">
                 <label
                   htmlFor="font-size"

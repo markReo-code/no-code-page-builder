@@ -46,6 +46,7 @@ export type ButtonBlock = {
   id: string;
   type: "button";
   content: string;
+  href: string;
   styles: TextBlockStyles;
 };
 
