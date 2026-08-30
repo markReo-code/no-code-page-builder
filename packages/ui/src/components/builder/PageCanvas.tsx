@@ -5,16 +5,12 @@ import type {
   BlockTemplate,
   PageBlock,
 } from "../../types/builder";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import InsertBlockButton from "./InsertBlockButton";
 import BlockPicker from "./BlockPicker";
 import { isTextBlock } from "../../lib/builder/blockGuards";
+import { useCanvasFocus } from "./hooks/useCanvasFocus";
+import { BlockContent } from "./BlockContent";
 
 type PageCanvasProps = {
   blocks: PageBlock[];
@@ -29,11 +25,6 @@ type PageCanvasProps = {
   onReplaceBlock: (blockId: string, template: BlockTemplate) => string;
 };
 
-type PendingFocus = {
-  blockId: string;
-  caret: "start" | "end";
-};
-
 // キーボードで直接編集できる block かを判定する
 const isTextEditableBlock = (block: PageBlock) => {
   return (
@@ -42,56 +33,6 @@ const isTextEditableBlock = (block: PageBlock) => {
     block.type === "button"
   );
 };
-
-// contentEditable に focus し、caret を先頭または末尾に置く
-const setCaret = (element: HTMLElement, caret: PendingFocus["caret"]) => {
-  element.focus();
-
-  const range = document.createRange();
-  range.selectNodeContents(element);
-  range.collapse(caret === "start");
-
-  const selection = window.getSelection();
-  selection?.removeAllRanges();
-  selection?.addRange(range);
-};
-
-// caret が contentEditable の末尾にあるかを判定する
-const isCaretAtEnd = (element: HTMLElement) => {
-  const selection = window.getSelection();
-
-  if (!selection || selection.rangeCount === 0) {
-    return false;
-  }
-
-  const currentRange = selection.getRangeAt(0);
-
-  if (!currentRange.collapsed) {
-    return false;
-  }
-
-  if (!element.contains(currentRange.endContainer)) {
-    return false;
-  }
-
-  const textAfterCaretRange = currentRange.cloneRange();
-  textAfterCaretRange.selectNodeContents(element);
-  textAfterCaretRange.setStart(
-    currentRange.endContainer,
-    currentRange.endOffset,
-  );
-
-  return textAfterCaretRange.toString() === "";
-};
-
-const headingTagByLevel = {
-  1: "h1",
-  2: "h2",
-  3: "h3",
-  4: "h4",
-  5: "h5",
-  6: "h6",
-} as const;
 
 const PageCanvas = ({
   blocks,
@@ -108,35 +49,17 @@ const PageCanvas = ({
     null,
   );
   const canvasRef = useRef<HTMLElement | null>(null);
-  const editableRefs = useRef(new Map<string, HTMLElement>());
-  const blockWrapperRefs = useRef(new Map<string, HTMLDivElement>());
-  const pendingFocusRef = useRef<PendingFocus | null>(null);
+
+  const {
+    registerEditableRef,
+    registerBlockWrapperRef,
+    requestFocus,
+    isCaretAtEnd,
+  } = useCanvasFocus({ blocks, selectedId });
 
   // BlockPicker を閉じる共通処理
   const closeBlockPicker = () => {
     setOpenPickerBlockId(null);
-  };
-
-  // contentEditable の DOM を blockId ごとに保持する
-  const registerEditableRef = (blockId: string) => {
-    return (node: HTMLElement | null) => {
-      if (node) {
-        editableRefs.current.set(blockId, node);
-      } else {
-        editableRefs.current.delete(blockId);
-      }
-    };
-  };
-
-  // Block wrapper のDOMを blockId ごとに保持する
-  const registerBlockWrapperRef = (blockId: string) => {
-    return (node: HTMLDivElement | null) => {
-      if (node) {
-        blockWrapperRefs.current.set(blockId, node);
-      } else {
-        blockWrapperRefs.current.delete(blockId);
-      }
-    };
   };
 
   // + ボタンで BlockPicker を開閉する
@@ -171,10 +94,10 @@ const PageCanvas = ({
     const nextFocusBlockId = previousBlock?.id ?? nextBlock?.id ?? null;
 
     if (nextFocusBlockId) {
-      pendingFocusRef.current = {
+      requestFocus({
         blockId: nextFocusBlockId,
         caret: previousBlock ? "end" : "start",
-      };
+      });
     }
 
     onDeleteBlock(blockId, nextFocusBlockId);
@@ -198,10 +121,10 @@ const PageCanvas = ({
 
       const newBlockId = onInsertTextBlockAfter(block.id);
 
-      pendingFocusRef.current = {
+      requestFocus({
         blockId: newBlockId,
         caret: "start",
-      };
+      });
 
       return;
     }
@@ -232,10 +155,11 @@ const PageCanvas = ({
       e.preventDefault();
       const newBlockId = onInsertTextBlockAfter(block.id);
 
-      pendingFocusRef.current = {
+      requestFocus({
         blockId: newBlockId,
         caret: "start",
-      };
+      });
+
       return;
     }
 
@@ -244,28 +168,6 @@ const PageCanvas = ({
       deleteBlockAndMoveFocus(block.id);
     }
   };
-
-  // block 追加・削除後に、予約された block へ focus / caret を復元する
-  useLayoutEffect(() => {
-    const pending = pendingFocusRef.current;
-    if (!pending) return;
-
-    const editableElement = editableRefs.current.get(pending.blockId);
-
-    if (editableElement) {
-      setCaret(editableElement, pending.caret);
-      pendingFocusRef.current = null;
-      return;
-    }
-
-    const wrapperElement = blockWrapperRefs.current.get(pending.blockId);
-
-    if (wrapperElement) {
-      wrapperElement.focus();
-    }
-
-    pendingFocusRef.current = null;
-  }, [blocks, selectedId]);
 
   // Canvas 外クリックで Picker を閉じる
   useEffect(() => {
@@ -289,65 +191,6 @@ const PageCanvas = ({
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [openPickerBlockId]);
-
-  // block の種類に応じた編集可能な表示内容を描画する
-  const renderBlockContent = (block: PageBlock) => {
-    switch (block.type) {
-      case "heading": {
-        const HeadingTag = headingTagByLevel[block.headingLevel];
-
-        return (
-          <HeadingTag
-            ref={registerEditableRef(block.id)}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => {
-              onChangeContent(block.id, e.currentTarget.textContent ?? "");
-            }}
-            onKeyDown={(e) => handleKeyDown(e, block)}
-            className="outline-none"
-          >
-            {block.content}
-          </HeadingTag>
-        );
-      }
-
-      case "paragraph":
-        return (
-          <p
-            ref={registerEditableRef(block.id)}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => {
-              onChangeContent(block.id, e.currentTarget.textContent ?? "");
-            }}
-            onKeyDown={(e) => handleKeyDown(e, block)}
-            className="outline-none"
-          >
-            {block.content}
-          </p>
-        );
-
-      case "button":
-        return (
-          <span
-            ref={registerEditableRef(block.id)}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => {
-              onChangeContent(block.id, e.currentTarget.textContent ?? "");
-            }}
-            onKeyDown={(e) => handleKeyDown(e, block)}
-            className="inline-flex min-h-10 max-w-full items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm leading-snug text-white outline-none whitespace-normal break-words"
-          >
-            {block.content}
-          </span>
-        );
-
-      case "image":
-        return <img src={block.src} alt={block.alt} className="max-w-full" />;
-    }
-  };
 
   return (
     <section
@@ -392,7 +235,12 @@ const PageCanvas = ({
               }`}
               style={blockStyle}
             >
-              {renderBlockContent(block)}
+              <BlockContent
+                block={block}
+                registerEditableRef={registerEditableRef}
+                onChangeContent={onChangeContent}
+                onKeyDown={handleKeyDown}
+              />
 
               {isSelected && (
                 <InsertBlockButton
